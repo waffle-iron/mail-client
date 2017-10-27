@@ -25,7 +25,9 @@ import javax.mail.Store;
 import javax.mail.Transport;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -1014,6 +1016,12 @@ public class Client extends javax.swing.JFrame {
     MimeMessage message = new MimeMessage(sessionSend);
     message.setFrom(new InternetAddress(user));
     message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+    //Add file attach to body
+    Multipart multipart = new MimeMultipart();
+    MimeBodyPart attachPart = new MimeBodyPart();
+    multipart.addBodyPart(attachPart);
+    message.setContent(multipart);
+    
     message.setSubject(sub);
     message.setText(cont);
     jProgressBar1.setValue(50);
