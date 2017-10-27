@@ -33,59 +33,22 @@ import javax.crypto.spec.SecretKeySpec;
  * @author HackerStrawHat
  */
 public class pgp {
-    private static final byte[] keyValue =
+    private static final byte[] key16byteTest =
             new byte[]{'T', 'h', 'e', 'B', 'e', 's', 't', 'S', 'e', 'c', 'r', 'e', 't', 'K', 'e', 'y'};
     private static Key keyPrivate;
-  /**
-   * The message is created like so: - Generates a random KeyPair - Encrypt the
-   * message with the private key from the generated key pair - Encrypt the
-   * generated public key with given public key
-   *
-   * @param message The message to encrypt
-   * @param key The key to encrypt with
-   * @return The encrypted message
-   * @throws GeneralSecurityException
-   */
-  public static byte[] encryptPublicKeyRSA(byte[] key) throws GeneralSecurityException {
-    KeyPair pair = generateKeyPair();
+
+  public static byte[] encryptSessionKeyRSA(byte[] sessionKey, PublicKey key) throws GeneralSecurityException {
     Cipher cipher = Cipher.getInstance("RSA");
-    cipher.init(Cipher.ENCRYPT_MODE, pair.getPublic());
-    keyPrivate = pair.getPrivate();
-
-//    byte[] encryptedMessage = cipher.doFinal(message.getBytes()); // Message encrypt with privateKey RSA
-
-//    cipher.init(Cipher.ENCRYPT_MODE, key);
-
-//    byte[] encryptedPublicKey =  // PublicKey encrypt
-
-//    ByteBuffer buffer = ByteBuffer.allocate((encryptedPublicKey.length + encryptedMessage.length) + 4);
-//    buffer.putInt(encryptedPublicKey.length);
-//    buffer.put(encryptedPublicKey);
-//    buffer.put(encryptedMessage);
-    return cipher.doFinal(key);
+    cipher.init(Cipher.ENCRYPT_MODE, key);
+//    keyPrivate = pair.getPrivate();
+    return cipher.doFinal(sessionKey);
   }
 
-  /**
-   * The message is decrypted like so: - Read the encrypted public key - Decrypt
-   * the public key with the private key - Read the encrypted message - Use the
-   * decrypted public key to decrypt the encrypted message
-   *
-   * @param message The encrypted message
-   * @param key The private key
-   * @return The decrypted message
-   * @throws GeneralSecurityException
-   */
-  public static byte[] decryptPublicKeyRSA(byte[] key) throws GeneralSecurityException {
-//    ByteBuffer buffer = ByteBuffer.wrap(message.getBytes());
-//    int keyLength = buffer.getInt();
-//    byte[] encyptedPublicKey = new byte[keyLength];
-//    buffer.get(encyptedPublicKey);
-
+  public static byte[] decryptSessionKeyRSA(byte[] encryptedSessionKey, PrivateKey key) throws GeneralSecurityException {
     Cipher cipher = Cipher.getInstance("RSA");
-//    Key key = new SecretKeySpec("[B@224aed64".getBytes(), 0, "[B@224aed64".getBytes().length, "RSA");
-//    cipher.init(Cipher.DECRYPT_MODE, );
+    cipher.init(Cipher.DECRYPT_MODE, key);
 
-    byte[] encodedPublicKey = cipher.doFinal(key);
+    byte[] encodedPublicKey = cipher.doFinal(encryptedSessionKey);
     return encodedPublicKey;
   }
 
@@ -97,17 +60,22 @@ public class pgp {
 
   protected static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-    keyPairGenerator.initialize(1024, SecureRandom.getInstance("SHA1PRNG"));
+    keyPairGenerator.initialize(2048, SecureRandom.getInstance("SHA1PRNG"));
     return keyPairGenerator.generateKeyPair();
   }
   
     public static void main(String[] args) throws NoSuchAlgorithmException, GeneralSecurityException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, Exception {
-//        System.out.println(encryptByAES("This is message, hi Diep, I like AES and PGP"));
+//        System.out.println(encryptMessageByAES("This is message"));
 //        System.out.println("========");
-//        System.out.println(decryptByAES("xeJ4ARR6qM5/nNn4IOjXM8PKjBSlw+yRhjPv1wfyPS7tZ/iwACEhg99kKS2yfsAZ"));
-        System.out.println(encryptPublicKeyRSA(keyValue));
-        System.out.println("key value = "+keyValue);
-//        System.out.println(decryptPublicKeyRSA("[B@387c703b".getBytes()));
+//        System.out.println(decryptMessagaeByAES("xeJ4ARR6qM5/nNn4IOjXM8PKjBSlw+yRhjPv1wfyPS7tZ/iwACEhg99kKS2yfsAZ"));
+//        System.out.println(encryptPublicKeyRSA(keyValue));
+//        System.out.println("key private = "+ keyPrivate.toString().getBytes());
+//        System.out.println(decryptPublicKeyRSA("[B@224aed64".getBytes()));
+        KeyPair pair = generateKeyPair();
+
+        keyPrivate = pair.getPrivate();
+        System.out.println("encode" + encryptSessionKeyRSA(key16byteTest, pair.getPublic()));
+        System.out.println("decode" +decryptSessionKeyRSA(encryptSessionKeyRSA(key16byteTest, pair.getPublic()), pair.getPrivate()));
     }
 
     // Sinh sessionKey 128bit
@@ -116,22 +84,23 @@ public class pgp {
 //        keyGenerator.init(128, new SecureRandom());
 //        return keyGenerator.generateKey();
 //    }
-    public static Key generateSessionKey() throws Exception {
-        return new SecretKeySpec(keyValue, "AES");
+    public static Key generateKeyAES() throws Exception {
+        return new SecretKeySpec(key16byteTest, "AES");
     }
     
     // encrypt data by AES algorithm
-    public static String encryptByAES(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, Exception {
+    public static String encryptMessageByAES(String data) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, Exception {
         Cipher cipher = Cipher.getInstance("AES");
-        cipher.init(Cipher.ENCRYPT_MODE, generateSessionKey());
+        System.out.println(generateKeyAES().toString().getBytes());
+        cipher.init(Cipher.ENCRYPT_MODE, generateKeyAES());
         byte[] encryptValue = cipher.doFinal(data.getBytes());
         return Base64.getEncoder().encodeToString(encryptValue);
     }
     
     // decrypt data by AES algorithm
-    public static String decryptByAES(String encryptedData) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, Exception {
+    public static String decryptMessagaeByAES(String encryptedData) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, Exception {
         Cipher c = Cipher.getInstance("AES");
-        c.init(Cipher.DECRYPT_MODE, generateSessionKey());
+        c.init(Cipher.DECRYPT_MODE, generateKeyAES());
         byte[] decordedValue = Base64.getDecoder().decode(encryptedData);
         byte[] decryptValue = c.doFinal(decordedValue);
         return new String(decryptValue);
