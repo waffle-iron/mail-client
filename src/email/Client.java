@@ -7,11 +7,15 @@ package email;
 
 import java.awt.Color;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Folder;
@@ -41,8 +45,8 @@ public class Client extends javax.swing.JFrame {
 
   //================
   String host = "localhost";
-  String user = "test@doan.net";
-  String password = "test";
+  String user = "diep@doan.net";
+  String password = "diep";
   //=================
   String content;
   Object con;
@@ -183,6 +187,9 @@ public class Client extends javax.swing.JFrame {
     jLabel25 = new javax.swing.JLabel();
     jScrollPane2 = new javax.swing.JScrollPane();
     jTextArea1 = new javax.swing.JTextArea();
+    jScrollPane4 = new javax.swing.JScrollPane();
+    jTextAreaKeyContentReceiver = new javax.swing.JTextArea();
+    jLabel35 = new javax.swing.JLabel();
     jPanel8 = new javax.swing.JPanel();
     jLabel12 = new javax.swing.JLabel();
     jScrollPane3 = new javax.swing.JScrollPane();
@@ -202,6 +209,9 @@ public class Client extends javax.swing.JFrame {
     jLabel33 = new javax.swing.JLabel();
     jLabel34 = new javax.swing.JLabel();
     jProgressBar1 = new javax.swing.JProgressBar();
+    jScrollPane5 = new javax.swing.JScrollPane();
+    jTextAreaKeyContentSender = new javax.swing.JTextArea();
+    jLabel36 = new javax.swing.JLabel();
     jPanel9 = new javax.swing.JPanel();
     jLabel13 = new javax.swing.JLabel();
     jPanel10 = new javax.swing.JPanel();
@@ -452,7 +462,7 @@ public class Client extends javax.swing.JFrame {
             .addGap(277, 277, 277)
             .addComponent(jLabel10))
           .addGroup(jPanel6Layout.createSequentialGroup()
-            .addGap(267, 267, 267)
+            .addGap(258, 258, 258)
             .addComponent(jLabel15))
           .addGroup(jPanel6Layout.createSequentialGroup()
             .addGap(220, 220, 220)
@@ -510,7 +520,6 @@ public class Client extends javax.swing.JFrame {
       }
     });
     jTable1.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-    jTable1.setGridColor(new java.awt.Color(255, 255, 255));
     jTable1.setRowHeight(20);
     jTable1.setSelectionBackground(new java.awt.Color(248, 148, 6));
     jTable1.getTableHeader().setReorderingAllowed(false);
@@ -569,6 +578,22 @@ public class Client extends javax.swing.JFrame {
     jTextArea1.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
     jScrollPane2.setViewportView(jTextArea1);
 
+    jScrollPane4.setBorder(null);
+    jScrollPane4.setAutoscrolls(true);
+
+    jTextAreaKeyContentReceiver.setEditable(false);
+    jTextAreaKeyContentReceiver.setBackground(new java.awt.Color(52, 73, 94));
+    jTextAreaKeyContentReceiver.setColumns(20);
+    jTextAreaKeyContentReceiver.setFont(new java.awt.Font("Tahoma", 0, 13)); // NOI18N
+    jTextAreaKeyContentReceiver.setForeground(new java.awt.Color(255, 255, 255));
+    jTextAreaKeyContentReceiver.setRows(5);
+    jTextAreaKeyContentReceiver.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+    jScrollPane4.setViewportView(jTextAreaKeyContentReceiver);
+
+    jLabel35.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+    jLabel35.setForeground(new java.awt.Color(255, 255, 255));
+    jLabel35.setText("Key content:");
+
     javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
     jPanel7.setLayout(jPanel7Layout);
     jPanel7Layout.setHorizontalGroup(
@@ -589,12 +614,12 @@ public class Client extends javax.swing.JFrame {
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
         .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+          .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel7Layout.createSequentialGroup()
+            .addContainerGap()
+            .addComponent(jScrollPane4))
           .addGroup(jPanel7Layout.createSequentialGroup()
             .addGap(0, 0, Short.MAX_VALUE)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 709, javax.swing.GroupLayout.PREFERRED_SIZE))
-          .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel7Layout.createSequentialGroup()
-            .addContainerGap()
-            .addComponent(jScrollPane2))
           .addGroup(jPanel7Layout.createSequentialGroup()
             .addGap(22, 22, 22)
             .addComponent(jLabel18)
@@ -603,7 +628,15 @@ public class Client extends javax.swing.JFrame {
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jLabel21)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)))
+            .addComponent(jLabel25, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE))
+          .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel7Layout.createSequentialGroup()
+            .addContainerGap()
+            .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+              .addGroup(jPanel7Layout.createSequentialGroup()
+                .addGap(10, 10, 10)
+                .addComponent(jLabel35)
+                .addGap(0, 0, Short.MAX_VALUE))
+              .addComponent(jScrollPane2))))
         .addGap(19, 19, 19))
     );
     jPanel7Layout.setVerticalGroup(
@@ -627,8 +660,12 @@ public class Client extends javax.swing.JFrame {
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
         .addComponent(jLabel20)
         .addGap(18, 18, 18)
-        .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
-        .addContainerGap())
+        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(jLabel35)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addContainerGap(16, Short.MAX_VALUE))
     );
 
     jPanel2.add(jPanel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 30, 710, 500));
@@ -705,16 +742,31 @@ public class Client extends javax.swing.JFrame {
     jLabel34.setForeground(new java.awt.Color(25, 181, 254));
     jLabel34.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
 
+    jScrollPane5.setBorder(null);
+    jScrollPane5.setAutoscrolls(true);
+
+    jTextAreaKeyContentSender.setBackground(new java.awt.Color(52, 73, 94));
+    jTextAreaKeyContentSender.setColumns(20);
+    jTextAreaKeyContentSender.setFont(new java.awt.Font("Tahoma", 0, 13)); // NOI18N
+    jTextAreaKeyContentSender.setForeground(new java.awt.Color(255, 255, 255));
+    jTextAreaKeyContentSender.setRows(5);
+    jTextAreaKeyContentSender.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
+    jTextAreaKeyContentSender.setCaretColor(new java.awt.Color(248, 148, 6));
+    jTextAreaKeyContentSender.setDisabledTextColor(new java.awt.Color(52, 73, 94));
+    jTextAreaKeyContentSender.setSelectionColor(new java.awt.Color(52, 73, 94));
+    jScrollPane5.setViewportView(jTextAreaKeyContentSender);
+
+    jLabel36.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+    jLabel36.setForeground(new java.awt.Color(255, 255, 255));
+    jLabel36.setText("Key content:");
+
     javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
     jPanel8.setLayout(jPanel8Layout);
     jPanel8Layout.setHorizontalGroup(
       jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel8Layout.createSequentialGroup()
+      .addGroup(jPanel8Layout.createSequentialGroup()
         .addContainerGap()
         .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addGroup(jPanel8Layout.createSequentialGroup()
-            .addComponent(jScrollPane3)
-            .addContainerGap())
           .addGroup(jPanel8Layout.createSequentialGroup()
             .addGap(17, 17, 17)
             .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -733,42 +785,52 @@ public class Client extends javax.swing.JFrame {
               .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 318, javax.swing.GroupLayout.PREFERRED_SIZE)
               .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 318, javax.swing.GroupLayout.PREFERRED_SIZE)
               .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 318, javax.swing.GroupLayout.PREFERRED_SIZE))
-            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-      .addGroup(jPanel8Layout.createSequentialGroup()
-        .addGap(277, 277, 277)
-        .addComponent(jLabel12)
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel8Layout.createSequentialGroup()
-        .addContainerGap()
-        .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addComponent(jLabel34, javax.swing.GroupLayout.PREFERRED_SIZE, 441, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
-        .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addComponent(jLabel26)
+            .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
           .addGroup(jPanel8Layout.createSequentialGroup()
-            .addGap(10, 10, 10)
-            .addComponent(jLabel31)))
-        .addGap(18, 18, 18)
-        .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-          .addGroup(jPanel8Layout.createSequentialGroup()
-            .addComponent(jLabel30)
-            .addGap(18, 18, 18)
-            .addComponent(jLabel27)
+            .addComponent(jScrollPane3)
+            .addContainerGap())
+          .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel8Layout.createSequentialGroup()
+            .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+              .addComponent(jLabel34, javax.swing.GroupLayout.PREFERRED_SIZE, 441, javax.swing.GroupLayout.PREFERRED_SIZE)
+              .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 330, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 31, Short.MAX_VALUE)
+            .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+              .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel8Layout.createSequentialGroup()
+                .addComponent(jLabel31)
+                .addGap(38, 38, 38))
+              .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel8Layout.createSequentialGroup()
+                .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)))
+            .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+              .addComponent(jLabel30)
+              .addComponent(jLabel32))
+            .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+              .addGroup(jPanel8Layout.createSequentialGroup()
+                .addGap(42, 42, 42)
+                .addComponent(jLabel33))
+              .addGroup(jPanel8Layout.createSequentialGroup()
+                .addGap(18, 18, 18)
+                .addComponent(jLabel27)))
             .addGap(29, 29, 29))
           .addGroup(jPanel8Layout.createSequentialGroup()
-            .addGap(10, 10, 10)
-            .addComponent(jLabel32)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jLabel33)
-            .addGap(51, 51, 51))))
+            .addComponent(jScrollPane5)
+            .addContainerGap())))
+      .addGroup(jPanel8Layout.createSequentialGroup()
+        .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(jPanel8Layout.createSequentialGroup()
+            .addGap(277, 277, 277)
+            .addComponent(jLabel12))
+          .addGroup(jPanel8Layout.createSequentialGroup()
+            .addGap(26, 26, 26)
+            .addComponent(jLabel36)))
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
     jPanel8Layout.setVerticalGroup(
       jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(jPanel8Layout.createSequentialGroup()
         .addGap(24, 24, 24)
         .addComponent(jLabel12)
-        .addGap(18, 26, Short.MAX_VALUE)
+        .addGap(18, 40, Short.MAX_VALUE)
         .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
           .addComponent(jLabel24))
@@ -783,23 +845,26 @@ public class Client extends javax.swing.JFrame {
         .addGap(21, 21, 21)
         .addComponent(jLabel29)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addGap(35, 35, 35)
+        .addComponent(jLabel36)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
         .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
           .addGroup(jPanel8Layout.createSequentialGroup()
-            .addGap(28, 28, 28)
-            .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(jLabel27, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-              .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-              .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+              .addComponent(jLabel30, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+              .addComponent(jLabel26, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+              .addComponent(jLabel27, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
               .addComponent(jLabel31)
               .addComponent(jLabel32)
               .addComponent(jLabel33)))
           .addGroup(jPanel8Layout.createSequentialGroup()
-            .addGap(18, 18, 18)
             .addComponent(jProgressBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
             .addComponent(jLabel34, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
         .addContainerGap())
     );
@@ -1012,21 +1077,18 @@ public class Client extends javax.swing.JFrame {
   }
 
   private void sendMail(String to, String sub, String cont) throws AddressException, MessagingException {
-
-    MimeMessage message = new MimeMessage(sessionSend);
-    message.setFrom(new InternetAddress(user));
-    message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-    //Add file attach to body
-    Multipart multipart = new MimeMultipart();
-    MimeBodyPart attachPart = new MimeBodyPart();
-    multipart.addBodyPart(attachPart);
-    message.setContent(multipart);
-    
-    message.setSubject(sub);
-    message.setText(cont);
-    jProgressBar1.setValue(50);
-    Transport.send(message);
-
+    try {
+      MimeMessage message = new MimeMessage(sessionSend);
+      message.setFrom(new InternetAddress(user));
+      message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+      message.setHeader("dcmm", "ádf");
+      message.setSubject(sub);
+      message.setText(pgp.pgp.encryptMessageByAES(cont));
+      jProgressBar1.setValue(50);
+      Transport.send(message);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   private void hideAll() {
@@ -1120,6 +1182,8 @@ public class Client extends javax.swing.JFrame {
   private javax.swing.JLabel jLabel32;
   private javax.swing.JLabel jLabel33;
   private javax.swing.JLabel jLabel34;
+  private javax.swing.JLabel jLabel35;
+  private javax.swing.JLabel jLabel36;
   private javax.swing.JLabel jLabel4;
   private javax.swing.JLabel jLabel5;
   private javax.swing.JLabel jLabel6;
@@ -1140,11 +1204,15 @@ public class Client extends javax.swing.JFrame {
   private javax.swing.JScrollPane jScrollPane1;
   private javax.swing.JScrollPane jScrollPane2;
   private javax.swing.JScrollPane jScrollPane3;
+  private javax.swing.JScrollPane jScrollPane4;
+  private javax.swing.JScrollPane jScrollPane5;
   private javax.swing.JSeparator jSeparator1;
   private javax.swing.JSeparator jSeparator2;
   private javax.swing.JTable jTable1;
   private javax.swing.JTextArea jTextArea1;
   private javax.swing.JTextArea jTextArea2;
+  private javax.swing.JTextArea jTextAreaKeyContentReceiver;
+  private javax.swing.JTextArea jTextAreaKeyContentSender;
   private javax.swing.JTextField jTextField3;
   private javax.swing.JTextField jTextField4;
   // End of variables declaration//GEN-END:variables

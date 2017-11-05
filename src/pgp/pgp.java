@@ -97,7 +97,6 @@ public class pgp {
             NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
             IllegalBlockSizeException, BadPaddingException, Exception {
         Cipher cipher = Cipher.getInstance(_AES_ALGORITHM_NAME);
-        System.out.println(generateKeyAES().toString().getBytes());
         cipher.init(Cipher.ENCRYPT_MODE, generateKeyAES());
         byte[] encryptValue = cipher.doFinal(data.getBytes());
         return Base64.getEncoder().encodeToString(encryptValue);
