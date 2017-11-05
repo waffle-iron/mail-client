@@ -45,8 +45,8 @@ public class Client extends javax.swing.JFrame {
 
   //================
   String host = "localhost";
-  String user = "diep@doan.net";
-  String password = "diep";
+  String user = "test@doan.net";
+  String password = "test";
   //=================
   String content;
   Object con;
@@ -1078,15 +1078,49 @@ public class Client extends javax.swing.JFrame {
 
   private void sendMail(String to, String sub, String cont) throws AddressException, MessagingException {
     try {
-      MimeMessage message = new MimeMessage(sessionSend);
-      message.setFrom(new InternetAddress(user));
-      message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-      message.setHeader("dcmm", "ádf");
-      message.setSubject(sub);
-      message.setText(pgp.pgp.encryptMessageByAES(cont));
-      jProgressBar1.setValue(50);
-      Transport.send(message);
-    } catch (Exception e) {
+//      MimeMessage message = new MimeMessage(sessionSend);
+//      message.setFrom(new InternetAddress(user));
+//      message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+//      message.setHeader("dcmm", "ádf");
+//      message.setSubject(sub);
+//      message.setText(pgp.pgp.encryptMessageByAES(cont));
+//      jProgressBar1.setValue(50);
+//      Transport.send(message);
+    
+          Message message = new MimeMessage(sessionSend);
+         // Set From: header field of the header.
+         message.setFrom(new InternetAddress(user));
+         // Set To: header field of the header.
+         message.setRecipients(Message.RecipientType.TO,
+            InternetAddress.parse(to));
+
+         // Set Subject: header field
+         message.setSubject(sub);
+         // Create the message part
+         BodyPart messageBodyPart = new MimeBodyPart();
+         // Now set the actual message
+         messageBodyPart.setText(pgp.pgp.encryptMessageByAES(cont));
+         // Create a multipar message
+         Multipart multipart = new MimeMultipart();
+         // Set text message part
+         multipart.addBodyPart(messageBodyPart);
+
+         // Part two is attachment
+         messageBodyPart = new MimeBodyPart();
+         String filename = "keyFile.txt";
+         DataSource source = new FileDataSource(filename);
+         messageBodyPart.setDataHandler(new DataHandler(source));
+         messageBodyPart.setFileName(filename);
+         multipart.addBodyPart(messageBodyPart);
+
+         // Send the complete message parts
+         message.setContent(multipart);
+
+         // Send message
+         Transport.send(message);
+
+         System.out.println("Sent message successfully....");
+         } catch (Exception e) {
       e.printStackTrace();
     }
   }
