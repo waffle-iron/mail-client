@@ -6,6 +6,7 @@
 package email;
 
 import java.awt.Color;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.NoSuchProviderException;
+import javax.mail.Part;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Store;
@@ -45,8 +47,8 @@ public class Client extends javax.swing.JFrame {
 
   //================
   String host = "localhost";
-  String user = "test@doan.net";
-  String password = "test";
+  String user = "diep@doan.net";
+  String password = "diep";
   //=================
   String content;
   Object con;
@@ -120,13 +122,36 @@ public class Client extends javax.swing.JFrame {
       e.setSubject(messages[i].getSubject().toString());
 
       con = messages[i].getContent();
+      String attachFiles = "";
+      String saveDirectory = "";
       if (con instanceof String) {
         content = (String) messages[i].getContent();
       } else if (con instanceof Multipart) {
         Multipart multipart = (Multipart) messages[i].getContent();
-        BodyPart part = multipart.getBodyPart(0);
-        part.toString();
-        content = part.getContent().toString();
+          int numberOfParts = multipart.getCount();
+          for (int partCount = 0; partCount < numberOfParts; partCount++) {
+              MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(partCount);
+              if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
+                  // this part is attachment
+                  String fileName = part.getFileName();
+                  attachFiles += fileName + ", ";
+                  part.saveFile(saveDirectory + File.separator + fileName);
+              } else {
+                  // this part may be the message content
+                  content = part.getContent().toString();
+              }
+          }
+          if (attachFiles.length() > 1) {
+              attachFiles = attachFiles.substring(0, attachFiles.length() - 2);
+              
+              // set attach file to mail object
+              e.setAttachFile(multipart.getBodyPart(1).getContent().toString());
+          }
+      } else {
+          Object contentObj = messages[i].getContent();
+          if (content != null) {
+              content = contentObj.toString();
+          }
       }
       e.setContent(content);
       d = messages[i].getSentDate();
@@ -1036,6 +1061,7 @@ public class Client extends javax.swing.JFrame {
       jLabel22.setText(ds.get(i).getFrom());
       jLabel23.setText(ds.get(i).getSubject());
       jTextArea1.setText(ds.get(i).getContent());
+      jTextAreaKeyContentReceiver.setText(ds.get(i).getAttachFile());
       jLabel25.setText(ds.get(i).getSentTime());
       
     }//GEN-LAST:event_jTable1MousePressed
@@ -1078,15 +1104,7 @@ public class Client extends javax.swing.JFrame {
 
   private void sendMail(String to, String sub, String cont) throws AddressException, MessagingException {
     try {
-//      MimeMessage message = new MimeMessage(sessionSend);
-//      message.setFrom(new InternetAddress(user));
-//      message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-//      message.setHeader("dcmm", "ádf");
-//      message.setSubject(sub);
-//      message.setText(pgp.pgp.encryptMessageByAES(cont));
-//      jProgressBar1.setValue(50);
-//      Transport.send(message);
-    
+
           Message message = new MimeMessage(sessionSend);
          // Set From: header field of the header.
          message.setFrom(new InternetAddress(user));

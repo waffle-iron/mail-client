@@ -15,16 +15,18 @@ public class Mail {
     private String subject;
     private String content;
     private String sentTime;
+    private String attachFile;
 
     public Mail() {
     }
 
-    public Mail(int index, String from, String subject, String content, String sentTime) {
+    public Mail(int index, String from, String subject, String content, String sentTime, String attachFile) {
         this.index = index;
         this.from = from;
         this.subject = subject;
         this.content = content;
         this.sentTime = sentTime;
+        this.attachFile = attachFile;
     }
 
     public int getIndex() {
@@ -65,5 +67,13 @@ public class Mail {
 
     public void setSentTime(String sentTime) {
         this.sentTime = sentTime;
+    }
+    
+    public String getAttachFile() {
+      return attachFile;
+    }
+    
+    public void setAttachFile(String attachFile) {
+      this.attachFile = attachFile;
     }
 }
