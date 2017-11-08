@@ -38,7 +38,6 @@ import javax.crypto.spec.SecretKeySpec;
  * @author HackerStrawHat
  */
 public class pgp {
-    private static String key16byteTest = "TheBestSecretKey";
 //    private static Key keyPrivate;
     private static final String _AES_ALGORITHM_NAME = "AES";
     private static final String _RSA_ALGORITHM_NAME = "RSA";
@@ -57,11 +56,6 @@ public class pgp {
     return encodedPublicKey;
   }
 
-  private static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
-    KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(_RSA_ALGORITHM_NAME);
-    keyPairGenerator.initialize(2048, SecureRandom.getInstance("SHA1PRNG"));
-    return keyPairGenerator.generateKeyPair();
-  }
 //  
 //    public static void main(String[] args) throws NoSuchAlgorithmException, GeneralSecurityException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, Exception {
 //        Test AES
@@ -89,7 +83,7 @@ public class pgp {
 //        return keyGenerator.generateKey();
 //    }
     private static Key generateKeyAES() throws Exception {
-        return new SecretKeySpec(key16byteTest.getBytes(), _AES_ALGORITHM_NAME);
+        return new SecretKeySpec(KDC.key16byteTest.getBytes(), _AES_ALGORITHM_NAME);
     }
     
     // encrypt data by AES algorithm

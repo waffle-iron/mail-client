@@ -9,6 +9,9 @@ import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Properties;
@@ -17,6 +20,9 @@ import java.util.logging.Logger;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.mail.Authenticator;
 import javax.mail.BodyPart;
 import javax.mail.Folder;
@@ -38,6 +44,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
+import pgp.KDC;
 
 /**
  *
@@ -47,8 +54,8 @@ public class Client extends javax.swing.JFrame {
 
   //================
   String host = "localhost";
-  String user = "diep@doan.net";
-  String password = "diep";
+  String user = "test@doan.net";
+  String password = "test";
   //=================
   String content;
   Object con;
@@ -215,6 +222,7 @@ public class Client extends javax.swing.JFrame {
     jScrollPane4 = new javax.swing.JScrollPane();
     jTextAreaKeyContentReceiver = new javax.swing.JTextArea();
     jLabel35 = new javax.swing.JLabel();
+    jButtonDecryptMessage = new javax.swing.JButton();
     jPanel8 = new javax.swing.JPanel();
     jLabel12 = new javax.swing.JLabel();
     jScrollPane3 = new javax.swing.JScrollPane();
@@ -619,24 +627,17 @@ public class Client extends javax.swing.JFrame {
     jLabel35.setForeground(new java.awt.Color(255, 255, 255));
     jLabel35.setText("Key content:");
 
+    jButtonDecryptMessage.setText("Decrypt Message");
+    jButtonDecryptMessage.addMouseListener(new java.awt.event.MouseAdapter() {
+      public void mouseClicked(java.awt.event.MouseEvent evt) {
+        jButtonDecryptMessageMouseClicked(evt);
+      }
+    });
+
     javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
     jPanel7.setLayout(jPanel7Layout);
     jPanel7Layout.setHorizontalGroup(
       jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(jPanel7Layout.createSequentialGroup()
-        .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addGroup(jPanel7Layout.createSequentialGroup()
-            .addGap(277, 277, 277)
-            .addComponent(jLabel11))
-          .addGroup(jPanel7Layout.createSequentialGroup()
-            .addGap(22, 22, 22)
-            .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(jLabel20)
-              .addGroup(jPanel7Layout.createSequentialGroup()
-                .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jLabel23, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
       .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
         .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
           .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel7Layout.createSequentialGroup()
@@ -663,6 +664,23 @@ public class Client extends javax.swing.JFrame {
                 .addGap(0, 0, Short.MAX_VALUE))
               .addComponent(jScrollPane2))))
         .addGap(19, 19, 19))
+      .addGroup(jPanel7Layout.createSequentialGroup()
+        .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(jPanel7Layout.createSequentialGroup()
+            .addGap(277, 277, 277)
+            .addComponent(jLabel11))
+          .addGroup(jPanel7Layout.createSequentialGroup()
+            .addGap(22, 22, 22)
+            .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+              .addComponent(jLabel20)
+              .addGroup(jPanel7Layout.createSequentialGroup()
+                .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel23, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE))))
+          .addGroup(jPanel7Layout.createSequentialGroup()
+            .addGap(326, 326, 326)
+            .addComponent(jButtonDecryptMessage, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)))
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
     jPanel7Layout.setVerticalGroup(
       jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -670,8 +688,8 @@ public class Client extends javax.swing.JFrame {
         .addGap(24, 24, 24)
         .addComponent(jLabel11)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addGap(18, 18, 18)
+        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
         .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addComponent(jLabel18)
           .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -690,7 +708,9 @@ public class Client extends javax.swing.JFrame {
         .addComponent(jLabel35)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addContainerGap(16, Short.MAX_VALUE))
+        .addGap(18, 18, 18)
+        .addComponent(jButtonDecryptMessage, javax.swing.GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE)
+        .addContainerGap())
     );
 
     jPanel2.add(jPanel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 30, 710, 500));
@@ -1055,6 +1075,8 @@ public class Client extends javax.swing.JFrame {
 
     }//GEN-LAST:event_jTable1MouseClicked
 
+    private String contentAttachFile = "";
+    
     private void jTable1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MousePressed
       int i = Integer.parseInt(jTable1.getValueAt(jTable1.getSelectedRow(), 0).toString());
       i--;
@@ -1063,10 +1085,18 @@ public class Client extends javax.swing.JFrame {
       jTextArea1.setText(ds.get(i).getContent());
       jTextAreaKeyContentReceiver.setText(ds.get(i).getAttachFile());
       jLabel25.setText(ds.get(i).getSentTime());
-      
+      contentAttachFile = ds.get(i).getAttachFile();
     }//GEN-LAST:event_jTable1MousePressed
 
     private void jLabel27MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel27MousePressed
+    try {
+      KeyFileIO.KeyFileIO.writeKeyToFile(pgp.pgp.encryptSessionKeyRSA(KDC.key16byteTest,
+              KDC.generateKeyPair().getPublic()).toString());
+    } catch (NoSuchAlgorithmException ex) {
+      Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+    } catch (GeneralSecurityException ex) {
+      Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+    }
       String st = "";
       if (jTextField3.getText().equals("")) {
         st += "Người gửi <trống>\n";
@@ -1097,6 +1127,20 @@ public class Client extends javax.swing.JFrame {
       }
 
     }//GEN-LAST:event_jLabel27MousePressed
+
+  private void jButtonDecryptMessageMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonDecryptMessageMouseClicked
+    jTextArea1.removeAll();
+    try {
+      // TODO add your handling code here:
+      String encryptedMessage = pgp.pgp.decryptSessionKeyRSA(contentAttachFile.getBytes(),
+              KDC.generateKeyPair().getPrivate()).toString();
+      jTextArea1.setText(pgp.pgp.decryptMessagaeByAES(encryptedMessage));
+      System.out.println(pgp.pgp.decryptMessagaeByAES(encryptedMessage));
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+//    jTextAreaKeyContentReceiver.getText()
+  }//GEN-LAST:event_jButtonDecryptMessageMouseClicked
 
   private void changColorLabel(JLabel a) {
     a.setForeground(new Color(129, 207, 224));
@@ -1206,6 +1250,7 @@ public class Client extends javax.swing.JFrame {
   DefaultTableModel model1;
   private javax.swing.JLabel choose = null;
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JButton jButtonDecryptMessage;
   private javax.swing.JLabel jLabel1;
   private javax.swing.JLabel jLabel10;
   private javax.swing.JLabel jLabel11;
