@@ -5,6 +5,8 @@
         <group>
             <file>file:/F:/NetBeansProjects/mail-client/src/email/Mail.java</file>
             <file>file:/F:/NetBeansProjects/mail-client/src/pgp/pgp.java</file>
+            <file>file:/F:/NetBeansProjects/mail-client/src/pgp/KDC.java</file>
+            <file>file:/F:/NetBeansProjects/mail-client/src/KeyFileIO/KeyFileIO.java</file>
             <file>file:/F:/NetBeansProjects/mail-client/src/email/Client.java</file>
         </group>
     </open-files>

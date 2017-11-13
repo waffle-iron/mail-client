@@ -5,10 +5,7 @@
  */
 package pgp;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
 
 /**
  *
@@ -16,10 +13,18 @@ import java.security.SecureRandom;
  */
 public class KDC {
   public static final String key16byteTest = "TheBestSecretKey";
+  public static PublicKey publicKey;
+  public static PrivateKey privateKey;
   
   public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
     KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
     keyPairGenerator.initialize(2048, SecureRandom.getInstance("SHA1PRNG"));
     return keyPairGenerator.generateKeyPair();
+  }
+  
+  public static void main(String[] args) throws NoSuchAlgorithmException {
+    KeyPair keyPair = generateKeyPair();
+    publicKey = keyPair.getPublic();
+    privateKey = keyPair.getPrivate();
   }
 }

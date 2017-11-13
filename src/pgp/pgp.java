@@ -25,6 +25,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -42,18 +43,17 @@ public class pgp {
     private static final String _AES_ALGORITHM_NAME = "AES";
     private static final String _RSA_ALGORITHM_NAME = "RSA";
 
-  public static byte[] encryptSessionKeyRSA(String sessionKey, PublicKey key) throws GeneralSecurityException {
+  public static String encryptSessionKeyRSA(String sessionKey, PublicKey key) throws GeneralSecurityException {
     Cipher cipher = Cipher.getInstance(_RSA_ALGORITHM_NAME);
     cipher.init(Cipher.ENCRYPT_MODE, key);
-    return cipher.doFinal(sessionKey.getBytes());
+    return bytesToHex(cipher.doFinal(sessionKey.getBytes()));
   }
 
-  public static byte[] decryptSessionKeyRSA(byte[] encryptedSessionKey, PrivateKey key) throws GeneralSecurityException {
+  public static byte[] decryptSessionKeyRSA(String encryptedSessionKey, PrivateKey key) throws GeneralSecurityException {
     Cipher cipher = Cipher.getInstance(_RSA_ALGORITHM_NAME);
     cipher.init(Cipher.DECRYPT_MODE, key);
-
-    byte[] encodedPublicKey = cipher.doFinal(encryptedSessionKey);
-    return encodedPublicKey;
+    byte[] encodedSessionKey = cipher.doFinal(hexStringToByteArray(encryptedSessionKey));
+    return encodedSessionKey;
   }
 
 //  
@@ -64,9 +64,11 @@ public class pgp {
 //        System.out.println(decryptMessagaeByAES("xeJ4ARR6qM5/nNn4IOjXM8PKjBSlw+yRhjPv1wfyPS7tZ/iwACEhg99kKS2yfsAZ"));
 //        
 //        Test RSA
-//        KeyPair pair = generateKeyPair();
-//        System.out.println(encryptSessionKeyRSA(key16byteTest, pair.getPublic()));
-//        System.out.println(new String(decryptSessionKeyRSA(encryptSessionKeyRSA(key16byteTest, pair.getPublic()),pair.getPrivate())));
+//        KeyPair pair = KDC.generateKeyPair();
+//        
+//        System.out.println(encryptSessionKeyRSA(KDC.key16byteTest, pair.getPublic()));
+//        System.out.println(new String(decryptSessionKeyRSA(encryptSessionKeyRSA(KDC.key16byteTest, pair.getPublic()),
+//                pair.getPrivate())));
 //    }
   
   //
@@ -82,6 +84,27 @@ public class pgp {
 //        keyGenerator.init(128, new SecureRandom());
 //        return keyGenerator.generateKey();
 //    }
+    public static String bytesToHex(byte[] bytes) {
+      char[] hexArray = "0123456789ABCDEF".toCharArray();
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+    
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                                 + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+    
     private static Key generateKeyAES() throws Exception {
         return new SecretKeySpec(KDC.key16byteTest.getBytes(), _AES_ALGORITHM_NAME);
     }
