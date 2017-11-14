@@ -1093,10 +1093,9 @@ public class Client extends javax.swing.JFrame {
 
     private void jLabel27MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel27MousePressed
     try {
-      System.out.println(KDC.publicKey);
       // chỉ cần share được publickey nữa là ok
       KeyFileIO.KeyFileIO.writeKeyToFile(pgp.pgp.encryptSessionKeyRSA(KDC.key16byteTest,
-              KDC.publicKey).toString());
+              KDC.publicKey).toString(), "keyFile.txt");
     } catch (NoSuchAlgorithmException ex) {
       Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
     } catch (GeneralSecurityException ex) {
@@ -1137,10 +1136,13 @@ public class Client extends javax.swing.JFrame {
     jTextArea1.removeAll();
     try {
       // TODO add your handling code here:
-      String dencryptedSessionKey = new String(pgp.pgp.decryptSessionKeyRSA(contentAttachFile,
-              KDC.privateKey));
-      jTextArea1.setText(pgp.pgp.decryptMessagaeByAES(dencryptedSessionKey));
-      System.out.println(pgp.pgp.decryptMessagaeByAES(dencryptedSessionKey));
+      // decrypt session Key
+      String decryptedSessionKey = new String(pgp.pgp.decryptSessionKeyRSA(contentAttachFile,
+              KDC.stringToPrivateKey(KeyFileIO.KeyFileIO.readKeyFromFile("private_key.txt"))));
+      
+      //decrypt message ussing decryptedSession key
+      jTextArea1.setText(pgp.pgp.decryptMessagaeByAES(decryptedSessionKey));
+      System.out.println(pgp.pgp.decryptMessagaeByAES(decryptedSessionKey));
     } catch (Exception ex) {
       ex.printStackTrace();
     }
