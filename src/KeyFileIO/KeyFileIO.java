@@ -6,17 +6,19 @@
 package KeyFileIO;
 import java.io.*;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author tran.xuan.diep
  */
 public final class KeyFileIO {
-    public final static void writeKeyToFile(String key) {
+    public final static void writeKeyToFile(String key, String fileName) {
         FileOutputStream fos = null;
         File file;
         try {
-            file = new File("keyFile.txt");
+            file = new File(fileName);
             if(!file.exists()) {
                 file.createNewFile();
             }
@@ -28,9 +30,9 @@ public final class KeyFileIO {
         }
     }
     
-    public final static String readKeyFromFile() {
+    public final static String readKeyFromFile(String fileName) {
         
-        File file = new File("keyFile.txt"); 
+        File file = new File(fileName); 
         String keyResult = "";
         try {
             Scanner scanner = new Scanner(file);
