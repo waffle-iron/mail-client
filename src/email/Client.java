@@ -6,46 +6,20 @@
 package email;
 
 import java.awt.Color;
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.mail.Authenticator;
-import javax.mail.BodyPart;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.NoSuchProviderException;
-import javax.mail.Part;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.Transport;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
+import javax.activation.*;
+import javax.crypto.*;
+import javax.mail.*;
+import javax.mail.internet.*;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import pgp.KDC;
 
@@ -55,138 +29,137 @@ import pgp.KDC;
  */
 public class Client extends javax.swing.JFrame {
 
-  //================
-  String host = "localhost";
-  String user = "test@doan.net";
-  String password = "test";
-  //=================
-  String content;
-  Object con;
-  ArrayList<Mail> ds = new ArrayList();
-  Properties getPro = new Properties();
-  Properties sendPro = new Properties();
-  Session sessionSend, sessionGet;
-  Authenticator p = new Authenticator() {
-    private PasswordAuthentication authentication;
+    //================
+    String host = "localhost";
+    String user = "test@doan.net";
+    String password = "test";
+    //=================
+    String content;
+    Object con;
+    ArrayList<Mail> ds = new ArrayList();
+    Properties getPro = new Properties();
+    Properties sendPro = new Properties();
+    Session sessionSend, sessionGet;
+    Authenticator p = new Authenticator() {
+        private PasswordAuthentication authentication;
 
-    {
-      authentication = new PasswordAuthentication(user, password);
+        {
+            authentication = new PasswordAuthentication(user, password);
+        }
+
+        protected PasswordAuthentication getPasswordAuthentication() {
+            return authentication;
+        }
+    };
+
+    /**
+     * Creates new form Client
+     */
+    public Client() throws NoSuchProviderException, MessagingException, IOException {
+        initComponents();
+        model1 = (DefaultTableModel) jTable1.getModel();
+        model1.getDataVector().removeAllElements();
+        jPanel6.setVisible(true);
+        jPanel7.setVisible(false);
+        jPanel8.setVisible(false);
+        jPanel9.setVisible(false);
+        jPanel10.setVisible(false);
+
+        // send mail
+        sendPro = new Properties();
+        sendPro.put("mail.transport.protocol", "smtp");
+        sendPro.put("mail.smtp.host", host);
+        sendPro.put("mail.smtp.port", "25");
+        sendPro.put("mail.smtp.auth", "true");
+
+        sessionSend = Session.getInstance(sendPro, p);
+        // get mail
+        getPro = new Properties();
+        getPro.put("mail.transport.protocol", "pop3");
+        getPro.put("mail.pop3.host", host);
+        getPro.put("mail.pop3.port", "110");
+        getPro.put("mail.pop3.auth", "true");
+
+        sessionGet = Session.getInstance(getPro, p);
+
+        checkMail();
     }
 
-    protected PasswordAuthentication getPasswordAuthentication() {
-      return authentication;
+    private void checkMail() throws NoSuchProviderException, MessagingException, IOException {
+        //check mail
+        Store store = sessionGet.getStore("pop3");
+        store.connect(host, user, password);
+        Folder inbox = store.getFolder("Inbox");
+        inbox.open(Folder.READ_ONLY);
+
+        Folder[] f = store.getDefaultFolder().list();
+
+        Message[] messages = inbox.getMessages();
+
+        Mail e;
+        Date d;
+        for (int i = 0; i < messages.length; i++) {
+            e = new Mail();
+            e.setIndex(i + 1);
+            e.setFrom(messages[i].getFrom()[0].toString());
+            e.setSubject(messages[i].getSubject().toString());
+
+            con = messages[i].getContent();
+            String attachFiles = "";
+            String saveDirectory = "";
+            if (con instanceof String) {
+                content = (String) messages[i].getContent();
+            } else if (con instanceof Multipart) {
+                Multipart multipart = (Multipart) messages[i].getContent();
+                int numberOfParts = multipart.getCount();
+                for (int partCount = 0; partCount < numberOfParts; partCount++) {
+                    MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(partCount);
+                    if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
+                        // this part is attachment
+                        String fileName = part.getFileName();
+                        attachFiles += fileName + ", ";
+                        part.saveFile(saveDirectory + File.separator + fileName);
+                    } else {
+                        // this part may be the message content
+                        content = part.getContent().toString();
+                    }
+                }
+                if (attachFiles.length() > 1) {
+                    attachFiles = attachFiles.substring(0, attachFiles.length() - 2);
+
+                    // set attach file to mail object
+                    e.setAttachFile(multipart.getBodyPart(1).getContent().toString());
+                }
+            } else {
+                Object contentObj = messages[i].getContent();
+                if (content != null) {
+                    content = contentObj.toString();
+                }
+            }
+            e.setContent(content);
+            d = messages[i].getSentDate();
+            if (d != null) {
+                e.setSentTime(messages[i].getSentDate().toString());
+            } else {
+                e.setSentTime("");
+            }
+            ds.add(e);
+            addTable(e);
+        }
+        inbox.close(true);
+        store.close();
     }
-  };
 
-  /**
-   * Creates new form Client
-   */
-  public Client() throws NoSuchProviderException, MessagingException, IOException {
-    initComponents();
-    model1 = (DefaultTableModel) jTable1.getModel();
-    model1.getDataVector().removeAllElements();
-    jPanel6.setVisible(true);
-    jPanel7.setVisible(false);
-    jPanel8.setVisible(false);
-    jPanel9.setVisible(false);
-    jPanel10.setVisible(false);
-
-    // send mail
-    sendPro = new Properties();
-    sendPro.put("mail.transport.protocol", "smtp");
-    sendPro.put("mail.smtp.host", host);
-    sendPro.put("mail.smtp.port", "25");
-    sendPro.put("mail.smtp.auth", "true");
-
-    sessionSend = Session.getInstance(sendPro, p);
-    // get mail
-    getPro = new Properties();
-    getPro.put("mail.transport.protocol", "pop3");
-    getPro.put("mail.pop3.host", host);
-    getPro.put("mail.pop3.port", "110");
-    getPro.put("mail.pop3.auth", "true");
-
-    sessionGet = Session.getInstance(getPro, p);
-
-    checkMail();
-  }
-
-  private void checkMail() throws NoSuchProviderException, MessagingException, IOException {
-    //check mail
-
-    Store store = sessionGet.getStore("pop3");
-    store.connect(host, user, password);
-    Folder inbox = store.getFolder("Inbox");
-    inbox.open(Folder.READ_ONLY);
-
-    Folder[] f = store.getDefaultFolder().list();
-
-    Message[] messages = inbox.getMessages();
-
-    Mail e;
-    Date d;
-    for (int i = 0; i < messages.length; i++) {
-      e = new Mail();
-      e.setIndex(i + 1);
-      e.setFrom(messages[i].getFrom()[0].toString());
-      e.setSubject(messages[i].getSubject().toString());
-
-      con = messages[i].getContent();
-      String attachFiles = "";
-      String saveDirectory = "";
-      if (con instanceof String) {
-        content = (String) messages[i].getContent();
-      } else if (con instanceof Multipart) {
-        Multipart multipart = (Multipart) messages[i].getContent();
-          int numberOfParts = multipart.getCount();
-          for (int partCount = 0; partCount < numberOfParts; partCount++) {
-              MimeBodyPart part = (MimeBodyPart) multipart.getBodyPart(partCount);
-              if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
-                  // this part is attachment
-                  String fileName = part.getFileName();
-                  attachFiles += fileName + ", ";
-                  part.saveFile(saveDirectory + File.separator + fileName);
-              } else {
-                  // this part may be the message content
-                  content = part.getContent().toString();
-              }
-          }
-          if (attachFiles.length() > 1) {
-              attachFiles = attachFiles.substring(0, attachFiles.length() - 2);
-              
-              // set attach file to mail object
-              e.setAttachFile(multipart.getBodyPart(1).getContent().toString());
-          }
-      } else {
-          Object contentObj = messages[i].getContent();
-          if (content != null) {
-              content = contentObj.toString();
-          }
-      }
-      e.setContent(content);
-      d = messages[i].getSentDate();
-      if (d != null) {
-        e.setSentTime(messages[i].getSentDate().toString());
-      } else {
-        e.setSentTime("");
-      }
-      ds.add(e);
-      addTable(e);
+    private void addTable(Mail e) {
+        model1.addRow(new Object[]{e.getIndex(), e.getFrom(), e.getSubject(), e.getContent(), e.getSentTime()});
     }
-    inbox.close(true);
-    store.close();
-  }
 
-  private void addTable(Mail e) {
-    model1.addRow(new Object[]{e.getIndex(), e.getFrom(), e.getSubject(), e.getContent(), e.getSentTime()});
-  }
-
-  /**
-   * This method is called from within the constructor to initialize the form.
-   * WARNING: Do NOT modify this code. The content of this method is always
-   * regenerated by the Form Editor.
-   */
-  @SuppressWarnings("unchecked")
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
   // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
   private void initComponents() {
 
@@ -978,100 +951,100 @@ public class Client extends javax.swing.JFrame {
 
     private void jLabel2MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel2MouseEntered
 
-      changColorLabel(jLabel2);
+        changColorLabel(jLabel2);
     }//GEN-LAST:event_jLabel2MouseEntered
 
     private void jLabel3MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel3MouseEntered
-      // TODO add your handling code here:
+        // TODO add your handling code here:
 
-      changColorLabel(jLabel3);
+        changColorLabel(jLabel3);
     }//GEN-LAST:event_jLabel3MouseEntered
 
     private void jLabel4MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel4MouseEntered
-      // TODO add your handling code here:
+        // TODO add your handling code here:
 
-      changColorLabel(jLabel4);
+        changColorLabel(jLabel4);
     }//GEN-LAST:event_jLabel4MouseEntered
 
     private void jLabel6MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel6MouseEntered
-      // TODO add your handling code here:
+        // TODO add your handling code here:
 
-      changColorLabel(jLabel6);
+        changColorLabel(jLabel6);
     }//GEN-LAST:event_jLabel6MouseEntered
 
     private void jLabel2MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel2MouseExited
-      // TODO add your handling code here:
-      resetColorLabel();
+        // TODO add your handling code here:
+        resetColorLabel();
     }//GEN-LAST:event_jLabel2MouseExited
 
     private void jLabel3MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel3MouseExited
-      // TODO add your handling code here:
-      resetColorLabel();
+        // TODO add your handling code here:
+        resetColorLabel();
     }//GEN-LAST:event_jLabel3MouseExited
 
     private void jLabel4MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel4MouseExited
-      // TODO add your handling code here:
-      resetColorLabel();
+        // TODO add your handling code here:
+        resetColorLabel();
     }//GEN-LAST:event_jLabel4MouseExited
 
     private void jLabel6MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel6MouseExited
-      // TODO add your handling code here:
-      resetColorLabel();
+        // TODO add your handling code here:
+        resetColorLabel();
     }//GEN-LAST:event_jLabel6MouseExited
 
     private void jLabel9MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel9MouseEntered
-      changColorLabel(jLabel9);
+        changColorLabel(jLabel9);
     }//GEN-LAST:event_jLabel9MouseEntered
 
     private void jLabel9MouseExited(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel9MouseExited
-      resetColorLabel();
+        resetColorLabel();
     }//GEN-LAST:event_jLabel9MouseExited
 
     private void jLabel5MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel5MousePressed
-      System.exit(0);
+        System.exit(0);
     }//GEN-LAST:event_jLabel5MousePressed
 
     private void jLabel2MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel2MousePressed
-      hideAll();
-      jPanel6.setVisible(true);
-      choose = jLabel2;
-      resetColorLabel();
-      choose.setForeground(new Color(248, 148, 6));
+        hideAll();
+        jPanel6.setVisible(true);
+        choose = jLabel2;
+        resetColorLabel();
+        choose.setForeground(new Color(248, 148, 6));
     }//GEN-LAST:event_jLabel2MousePressed
 
     private void jLabel3MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel3MousePressed
-      hideAll();
-      jPanel7.setVisible(true);
-      choose = jLabel3;
-      resetColorLabel();
-      choose.setForeground(new Color(248, 148, 6));
+        hideAll();
+        jPanel7.setVisible(true);
+        choose = jLabel3;
+        resetColorLabel();
+        choose.setForeground(new Color(248, 148, 6));
     }//GEN-LAST:event_jLabel3MousePressed
 
     private void jLabel6MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel6MousePressed
-      // TODO add your handling code here:
-      hideAll();
-      jPanel8.setVisible(true);
-      choose = jLabel6;
-      resetColorLabel();
-      choose.setForeground(new Color(248, 148, 6));
+        // TODO add your handling code here:
+        hideAll();
+        jPanel8.setVisible(true);
+        choose = jLabel6;
+        resetColorLabel();
+        choose.setForeground(new Color(248, 148, 6));
     }//GEN-LAST:event_jLabel6MousePressed
 
     private void jLabel4MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel4MousePressed
-      // TODO add your handling code here:
-      hideAll();
-      jPanel9.setVisible(true);
-      choose = jLabel4;
-      resetColorLabel();
-      choose.setForeground(new Color(248, 148, 6));
+        // TODO add your handling code here:
+        hideAll();
+        jPanel9.setVisible(true);
+        choose = jLabel4;
+        resetColorLabel();
+        choose.setForeground(new Color(248, 148, 6));
     }//GEN-LAST:event_jLabel4MousePressed
 
     private void jLabel9MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel9MousePressed
-      // TODO add your handling code here:
-      hideAll();
-      jPanel10.setVisible(true);
-      choose = jLabel9;
-      resetColorLabel();
-      choose.setForeground(new Color(248, 148, 6));
+        // TODO add your handling code here:
+        hideAll();
+        jPanel10.setVisible(true);
+        choose = jLabel9;
+        resetColorLabel();
+        choose.setForeground(new Color(248, 148, 6));
     }//GEN-LAST:event_jLabel9MousePressed
 
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
@@ -1079,183 +1052,181 @@ public class Client extends javax.swing.JFrame {
     }//GEN-LAST:event_jTable1MouseClicked
 
     private String contentAttachFile = "";
-    
+    private String contentMessage = "";
+
     private void jTable1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MousePressed
-      int i = Integer.parseInt(jTable1.getValueAt(jTable1.getSelectedRow(), 0).toString());
-      i--;
-      jLabel22.setText(ds.get(i).getFrom());
-      jLabel23.setText(ds.get(i).getSubject());
-      jTextArea1.setText(ds.get(i).getContent());
-      jTextAreaKeyContentReceiver.setText(ds.get(i).getAttachFile());
-      jLabel25.setText(ds.get(i).getSentTime());
-      contentAttachFile = ds.get(i).getAttachFile();
+        int i = Integer.parseInt(jTable1.getValueAt(jTable1.getSelectedRow(), 0).toString());
+        i--;
+        jLabel22.setText(ds.get(i).getFrom());
+        jLabel23.setText(ds.get(i).getSubject());
+        jTextArea1.setText(ds.get(i).getContent());
+        jTextAreaKeyContentReceiver.setText(ds.get(i).getAttachFile());
+        jLabel25.setText(ds.get(i).getSentTime());
+        contentAttachFile = ds.get(i).getAttachFile();
+        contentMessage = ds.get(i).getContent();
     }//GEN-LAST:event_jTable1MousePressed
 
     private void jLabel27MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jLabel27MousePressed
-    try {
-      // chỉ cần share được publickey nữa là ok
-      KeyFileIO.KeyFileIO.writeKeyToFile(pgp.pgp.encryptSessionKeyRSA(KDC.key16byteTest,
-              KDC.publicKey).toString(), "keyFile.txt");
-    } catch (NoSuchAlgorithmException ex) {
-      Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-    } catch (GeneralSecurityException ex) {
-      Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-    }
-      String st = "";
-      if (jTextField3.getText().equals("")) {
-        st += "Người gửi <trống>\n";
-      }
-      if (jTextField4.getText().equals("")) {
-        st += "Subject <trống>\n";
-      }
-      if (jTextArea2.getText().equals("")) {
-        st += "Content <trống>\n";
-      }
-      jProgressBar1.setValue(10);
-      if (st.equals("")) {
-
         try {
-          sendMail(jTextField3.getText(), jTextField4.getText(), jTextArea2.getText());
-        } catch (MessagingException ex) {
-          st = ex.toString();
-          jLabel34.setText(st);
+            // chỉ cần share được publickey nữa là ok
+            KeyFileIO.KeyFileIO.writeKeyToFile(pgp.pgp.encryptSessionKeyRSA(KDC.key16byteTest,
+                    KDC.stringToPublicKey(KeyFileIO.KeyFileIO.readKeyFromFile("public_key.txt"))), "keyFile.txt");
+        } catch (GeneralSecurityException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
-        jProgressBar1.setValue(100);
-        jLabel34.setText("Thư đã được gửi!");
-        jTextField3.setText("");
-        jTextField4.setText("");
-        jTextArea2.setText("");
+        String st = "";
+        if (jTextField3.getText().equals("")) {
+            st += "Người gửi <trống>\n";
+        }
+        if (jTextField4.getText().equals("")) {
+            st += "Subject <trống>\n";
+        }
+        if (jTextArea2.getText().equals("")) {
+            st += "Content <trống>\n";
+        }
+        jProgressBar1.setValue(10);
+        if (st.equals("")) {
 
-      } else {
-        jLabel34.setText(st);
-      }
+            try {
+                sendMail(jTextField3.getText(), jTextField4.getText(), jTextArea2.getText());
+            } catch (MessagingException ex) {
+                st = ex.toString();
+                jLabel34.setText(st);
+            }
+            jProgressBar1.setValue(100);
+            jLabel34.setText("Thư đã được gửi!");
+            jTextField3.setText("");
+            jTextField4.setText("");
+            jTextArea2.setText("");
+
+        } else {
+            jLabel34.setText(st);
+        }
 
     }//GEN-LAST:event_jLabel27MousePressed
 
   private void jButtonDecryptMessageMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButtonDecryptMessageMouseClicked
-    jTextArea1.removeAll();
-    try {
-      // TODO add your handling code here:
-      // decrypt session Key
-      String decryptedSessionKey = new String(pgp.pgp.decryptSessionKeyRSA(contentAttachFile,
-              KDC.stringToPrivateKey(KeyFileIO.KeyFileIO.readKeyFromFile("private_key.txt"))));
-      
-      //decrypt message ussing decryptedSession key
-      jTextArea1.setText(pgp.pgp.decryptMessagaeByAES(decryptedSessionKey));
-      System.out.println(pgp.pgp.decryptMessagaeByAES(decryptedSessionKey));
-    } catch (Exception ex) {
-      ex.printStackTrace();
-    }
+      jTextArea1.removeAll();
+      try {
+          // decrypt session Key
+          String decryptedSessionKey = new String(pgp.pgp.decryptSessionKeyRSA(contentAttachFile,
+                  KDC.stringToPrivateKey(KeyFileIO.KeyFileIO.readKeyFromFile("private_key.txt"))));
+
+          //decrypt message using decryptedSession key
+          jTextArea1.setText(pgp.pgp.decryptMessagaeByAES(contentMessage, decryptedSessionKey));
+      } catch (Exception ex) {
+          ex.printStackTrace();
+      }
 //    jTextAreaKeyContentReceiver.getText()
   }//GEN-LAST:event_jButtonDecryptMessageMouseClicked
 
-  private void changColorLabel(JLabel a) {
-    a.setForeground(new Color(129, 207, 224));
-  }
-
-  private void sendMail(String to, String sub, String cont) throws AddressException, MessagingException {
-    try {
-
-          Message message = new MimeMessage(sessionSend);
-         // Set From: header field of the header.
-         message.setFrom(new InternetAddress(user));
-         // Set To: header field of the header.
-         message.setRecipients(Message.RecipientType.TO,
-            InternetAddress.parse(to));
-
-         // Set Subject: header field
-         message.setSubject(sub);
-         // Create the message part
-         BodyPart messageBodyPart = new MimeBodyPart();
-         // Now set the actual message
-         messageBodyPart.setText(pgp.pgp.encryptMessageByAES(cont));
-         // Create a multipar message
-         Multipart multipart = new MimeMultipart();
-         // Set text message part
-         multipart.addBodyPart(messageBodyPart);
-
-         // Part two is attachment
-         messageBodyPart = new MimeBodyPart();
-         String filename = "keyFile.txt";
-         DataSource source = new FileDataSource(filename);
-         messageBodyPart.setDataHandler(new DataHandler(source));
-         messageBodyPart.setFileName(filename);
-         multipart.addBodyPart(messageBodyPart);
-
-         // Send the complete message parts
-         message.setContent(multipart);
-
-         // Send message
-         Transport.send(message);
-
-         System.out.println("Sent message successfully....");
-         } catch (Exception e) {
-      e.printStackTrace();
+    private void changColorLabel(JLabel a) {
+        a.setForeground(new Color(129, 207, 224));
     }
-  }
 
-  private void hideAll() {
-    jPanel6.setVisible(false);
-    jPanel7.setVisible(false);
-    jPanel8.setVisible(false);
-    jPanel9.setVisible(false);
-    jPanel10.setVisible(false);
-  }
-
-  private void resetColorLabel() {
-    jLabel2.setForeground(Color.WHITE);
-    jLabel3.setForeground(Color.WHITE);
-    jLabel4.setForeground(Color.WHITE);
-    jLabel6.setForeground(Color.WHITE);
-    jLabel9.setForeground(Color.WHITE);
-    if (choose != null) {
-      choose.setForeground(new Color(248, 148, 6));
-    }
-  }
-
-  /**
-   * @param args the command line arguments
-   */
-  public static void main(String args[]) {
-    /* Set the Nimbus look and feel */
-    //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-    /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-     */
-    try {
-      for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-        if ("Nimbus".equals(info.getName())) {
-          javax.swing.UIManager.setLookAndFeel(info.getClassName());
-          break;
-        }
-      }
-    } catch (ClassNotFoundException ex) {
-      java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-    } catch (InstantiationException ex) {
-      java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-    } catch (IllegalAccessException ex) {
-      java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-    } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-      java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-    }
-    //</editor-fold>
-    //</editor-fold>
-
-    /* Create and display the form */
-    java.awt.EventQueue.invokeLater(new Runnable() {
-      public void run() {
+    private void sendMail(String to, String sub, String cont) throws AddressException, MessagingException {
         try {
-          new Client().setVisible(true);
-        } catch (MessagingException ex) {
-          Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-          Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+
+            Message message = new MimeMessage(sessionSend);
+            // Set From: header field of the header.
+            message.setFrom(new InternetAddress(user));
+            // Set To: header field of the header.
+            message.setRecipients(Message.RecipientType.TO,
+                    InternetAddress.parse(to));
+
+            // Set Subject: header field
+            message.setSubject(sub);
+            // Create the message part
+            BodyPart messageBodyPart = new MimeBodyPart();
+            // Now set the actual message
+            messageBodyPart.setText(pgp.pgp.encryptMessageByAES(cont));
+            // Create a multipar message
+            Multipart multipart = new MimeMultipart();
+            // Set text message part
+            multipart.addBodyPart(messageBodyPart);
+
+            // Part two is attachment
+            messageBodyPart = new MimeBodyPart();
+            String filename = "keyFile.txt";
+            DataSource source = new FileDataSource(filename);
+            messageBodyPart.setDataHandler(new DataHandler(source));
+            messageBodyPart.setFileName(filename);
+            multipart.addBodyPart(messageBodyPart);
+
+            // Send the complete message parts
+            message.setContent(multipart);
+
+            // Send message
+            Transport.send(message);
+
+            System.out.println("Sent message successfully....");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-      }
-    });
-  }
-  DefaultTableModel model1;
-  private javax.swing.JLabel choose = null;
+    }
+
+    private void hideAll() {
+        jPanel6.setVisible(false);
+        jPanel7.setVisible(false);
+        jPanel8.setVisible(false);
+        jPanel9.setVisible(false);
+        jPanel10.setVisible(false);
+    }
+
+    private void resetColorLabel() {
+        jLabel2.setForeground(Color.WHITE);
+        jLabel3.setForeground(Color.WHITE);
+        jLabel4.setForeground(Color.WHITE);
+        jLabel6.setForeground(Color.WHITE);
+        jLabel9.setForeground(Color.WHITE);
+        if (choose != null) {
+            choose.setForeground(new Color(248, 148, 6));
+        }
+    }
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                try {
+                    new Client().setVisible(true);
+                } catch (MessagingException ex) {
+                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+    }
+    DefaultTableModel model1;
+    private javax.swing.JLabel choose = null;
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JButton jButtonDecryptMessage;
   private javax.swing.JLabel jLabel1;

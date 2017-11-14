@@ -7,7 +7,7 @@ package email;
 
 /**
  *
- * @author hieunq
+ * @author tran.xuan.diep
  */
 public class Mail {
     private int index;

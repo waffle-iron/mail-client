@@ -17,6 +17,7 @@ import java.security.spec.X509EncodedKeySpec;
  * @author HackerStrawHat
  */
 public class KDC {
+
   public static final String key16byteTest = "TheBestSecretKey";
   public static PublicKey publicKey;
   public static PrivateKey privateKey;
@@ -27,36 +28,14 @@ public class KDC {
     return keyPairGenerator.generateKeyPair();
   }
   
-  
-  
   public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeySpecException {
     KeyPair keyPair = generateKeyPair();
     publicKey = keyPair.getPublic();
     privateKey = keyPair.getPrivate();
-    
     byte[] privateKeyBytes = privateKey.getEncoded();
     byte[] publicKeyBytes = publicKey.getEncoded();
-    
     KeyFileIO.KeyFileIO.writeKeyToFile(Base64.encode(publicKeyBytes), "public_key.txt");
     KeyFileIO.KeyFileIO.writeKeyToFile(Base64.encode(privateKeyBytes), "private_key.txt");
-    
-    
-    
-//    String formatPrivate = privateKey.getFormat(); // PKCS#8
-//    String formatPublic = publicKey.getFormat(); // X.509
-//    
-//    System.out.println("Private Key : " + Base64.encode(privateKeyBytes));
-//    System.out.println("Public Key : " + Base64.encode(publicKeyBytes));
-//
-//               // The bytes can be converted back to public and private key objects
-//    KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-//    PrivateKey privateKey2 = stringToPrivateKey(Base64.encode(privateKeyBytes));
-//      System.out.println(privateKey2);
-//    PublicKey publicKey2 = stringToPublicKey(Base64.encode(publicKeyBytes));
-//
-//    // The original and new keys are the same
-//    System.out.println("  Are both private keys equal? " + privateKey.equals(privateKey2));
-//    System.out.println("  Are both public keys equal? " + publicKey.equals(publicKey2));
   }
   
     public static PrivateKey stringToPrivateKey(String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -70,4 +49,11 @@ public class KDC {
         EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(Base64.decode(key));
         return keyFactory.generatePublic(publicKeySpec);
     }
+    
+//        Sinh sessionKey 128bit
+//        private static Key generateSessionKey() throws NoSuchAlgorithmException {
+//        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+//        keyGenerator.init(128, new SecureRandom());
+//        return keyGenerator.generateKey();
+//    }
 }
